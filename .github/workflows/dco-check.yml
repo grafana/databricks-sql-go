@@ -8,7 +8,7 @@ jobs:
     steps:
       - name: Check for DCO
         id: dco-check
-        uses: tisonkun/actions-dco@v1.1
+        uses: tisonkun/actions-dco@f1024cd563550b5632e754df11b7d30b73be54a5
       - name: Comment about DCO status
         uses: actions/github-script@v6
         if: ${{ failure() }}

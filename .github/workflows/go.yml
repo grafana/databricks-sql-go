@@ -18,18 +18,18 @@ jobs:
       - name: Set up Go Toolchain
         uses: actions/setup-go@v5
         with:
-          go-version: '1.20.x'
+          go-version: '1.21.x'
           cache: false
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@d6238b002a20823d52840fda27e2d4891c5952dc
         with:
           version: 'v1.51'
   build-and-test:
     name: Test and Build
     strategy:
       matrix:
-        go-version: [1.20.x]
+        go-version: [1.21.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
 
