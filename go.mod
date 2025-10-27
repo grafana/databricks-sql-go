@@ -1,6 +1,6 @@
 module github.com/databricks/databricks-sql-go
 
-go 1.20
+go 1.21
 
 require (
 	github.com/apache/arrow/go/v12 v12.0.1
