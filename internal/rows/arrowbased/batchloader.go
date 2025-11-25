@@ -40,6 +40,7 @@ func NewCloudIPCStreamIterator(
 		startRowOffset: startRowOffset,
 		pendingLinks:   NewQueue[cli_service.TSparkArrowResultLink](),
 		downloadTasks:  NewQueue[cloudFetchDownloadTask](),
+		httpClient:     cfg.CloudFetchConfig.HttpClient,
 	}
 
 	for _, link := range files {
@@ -140,7 +141,7 @@ type cloudIPCStreamIterator struct {
 	startRowOffset int64
 	pendingLinks   Queue[cli_service.TSparkArrowResultLink]
 	downloadTasks  Queue[cloudFetchDownloadTask]
-	httpClient     *http.CLient
+	httpClient     *http.Client
 }
 
 var _ IPCStreamIterator = (*cloudIPCStreamIterator)(nil)
@@ -212,7 +213,7 @@ type cloudFetchDownloadTask struct {
 	link               *cli_service.TSparkArrowResultLink
 	resultChan         chan cloudFetchDownloadTaskResult
 	speedThresholdMbps float64
-  httpClient         *http.Client
+	httpClient         *http.Client
 }
 
 func (cft *cloudFetchDownloadTask) GetResult() (io.Reader, error) {
@@ -303,7 +304,7 @@ func fetchBatchBytes(
 	link *cli_service.TSparkArrowResultLink,
 	minTimeToExpiry time.Duration,
 	speedThresholdMbps float64,
-	httpClient *http.Client
+	httpClient *http.Client,
 ) (io.ReadCloser, error) {
 	if isLinkExpired(link.ExpiryTime, minTimeToExpiry) {
 		return nil, errors.New(dbsqlerr.ErrLinkExpired)
