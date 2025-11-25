@@ -327,7 +327,7 @@ func fetchBatchBytes(
 	}
 
 	startTime := time.Now()
-	res, err := client.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
