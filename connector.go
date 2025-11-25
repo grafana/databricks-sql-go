@@ -63,7 +63,16 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 		CanUseMultipleCatalogs: &c.cfg.CanUseMultipleCatalogs,
 	})
 	if err != nil {
-		return nil, dbsqlerrint.NewRequestError(ctx, fmt.Sprintf("error connecting: host=%s port=%d, httpPath=%s", c.cfg.Host, c.cfg.Port, c.cfg.HTTPPath), err)
+		return nil, dbsqlerrint.NewRequestError(
+			ctx,
+			fmt.Sprintf(
+				"error connecting: host=%s port=%d, httpPath=%s",
+				c.cfg.Host,
+				c.cfg.Port,
+				c.cfg.HTTPPath,
+			),
+			err,
+		)
 	}
 
 	conn := &conn{
@@ -74,7 +83,8 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 	}
 	log := logger.WithContext(conn.id, driverctx.CorrelationIdFromContext(ctx), "")
 
-	log.Info().Msgf("connect: host=%s port=%d httpPath=%s serverProtocolVersion=0x%X", c.cfg.Host, c.cfg.Port, c.cfg.HTTPPath, session.ServerProtocolVersion)
+	log.Info().
+		Msgf("connect: host=%s port=%d httpPath=%s serverProtocolVersion=0x%X", c.cfg.Host, c.cfg.Port, c.cfg.HTTPPath, session.ServerProtocolVersion)
 
 	return conn, nil
 }
@@ -241,7 +251,10 @@ func WithSessionParams(params map[string]string) ConnOption {
 func WithSkipTLSHostVerify() ConnOption {
 	return func(c *config.Config) {
 		if c.TLSConfig == nil {
-			c.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: true} // #nosec G402
+			c.TLSConfig = &tls.Config{
+				MinVersion:         tls.VersionTLS12,
+				InsecureSkipVerify: true,
+			} // #nosec G402
 		} else {
 			c.TLSConfig.InsecureSkipVerify = true // #nosec G402
 		}
@@ -266,6 +279,12 @@ func WithTransport(t http.RoundTripper) ConnOption {
 func WithCloudFetch(useCloudFetch bool) ConnOption {
 	return func(c *config.Config) {
 		c.UseCloudFetch = useCloudFetch
+	}
+}
+
+func WithCloudFetchHttpClient(httpclient *http.Client) ConnOption {
+	return func(c *config.Config) {
+		c.UserConfig.CloudFetchConfig.HttpClient = httpclient
 	}
 }
 
