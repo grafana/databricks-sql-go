@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	dbsqlerr "github.com/databricks/databricks-sql-go/errors"
 	"github.com/pkg/errors"
 
 	"github.com/databricks/databricks-sql-go/auth"
@@ -17,7 +18,6 @@ import (
 	"github.com/databricks/databricks-sql-go/auth/oauth/m2m"
 	"github.com/databricks/databricks-sql-go/auth/oauth/u2m"
 	"github.com/databricks/databricks-sql-go/auth/pat"
-	dbsqlerr "github.com/databricks/databricks-sql-go/errors"
 	"github.com/databricks/databricks-sql-go/internal/cli_service"
 	dbsqlerrint "github.com/databricks/databricks-sql-go/internal/errors"
 	"github.com/databricks/databricks-sql-go/logger"
@@ -198,6 +198,7 @@ func WithDefaults() *Config {
 		ThriftProtocolVersion:     cli_service.TProtocolVersion_SPARK_CLI_SERVICE_PROTOCOL_V8,
 		ThriftDebugClientProtocol: false,
 	}
+
 }
 
 // ParseDSN constructs UserConfig and CloudFetchConfig by parsing DSN string supplied to `sql.Open()`
@@ -208,22 +209,14 @@ func ParseDSN(dsn string) (UserConfig, error) {
 	}
 	parsedURL, err := url.Parse(fullDSN)
 	if err != nil {
-		return UserConfig{}, dbsqlerrint.NewRequestError(
-			context.TODO(),
-			dbsqlerr.ErrInvalidDSNFormat,
-			err,
-		)
+		return UserConfig{}, dbsqlerrint.NewRequestError(context.TODO(), dbsqlerr.ErrInvalidDSNFormat, err)
 	}
 	ucfg := UserConfig{}.WithDefaults()
 	ucfg.Protocol = parsedURL.Scheme
 	ucfg.Host = parsedURL.Hostname()
 	port, err := strconv.Atoi(parsedURL.Port())
 	if err != nil {
-		return UserConfig{}, dbsqlerrint.NewRequestError(
-			context.TODO(),
-			dbsqlerr.ErrInvalidDSNPort,
-			err,
-		)
+		return UserConfig{}, dbsqlerrint.NewRequestError(context.TODO(), dbsqlerr.ErrInvalidDSNPort, err)
 	}
 	ucfg.Port = port
 
@@ -402,11 +395,7 @@ func (params *extractableParams) extractAsInt(key string) (int, bool, error) {
 	if intString, ok := extractParam(key, params, false, true); ok {
 		i, err := strconv.Atoi(intString)
 		if err != nil {
-			return 0, true, dbsqlerrint.NewRequestError(
-				context.TODO(),
-				dbsqlerr.InvalidDSNFormat(key, intString, "int"),
-				err,
-			)
+			return 0, true, dbsqlerrint.NewRequestError(context.TODO(), dbsqlerr.InvalidDSNFormat(key, intString, "int"), err)
 		}
 
 		return i, true, nil
@@ -419,11 +408,7 @@ func (params *extractableParams) extractAsBool(key string) (bool, bool, error) {
 	if boolString, ok := extractParam(key, params, false, true); ok {
 		b, err := strconv.ParseBool(boolString)
 		if err != nil {
-			return false, true, dbsqlerrint.NewRequestError(
-				context.TODO(),
-				dbsqlerr.InvalidDSNFormat(key, boolString, "bool"),
-				err,
-			)
+			return false, true, dbsqlerrint.NewRequestError(context.TODO(), dbsqlerr.InvalidDSNFormat(key, boolString, "bool"), err)
 		}
 
 		return b, true, nil
@@ -437,12 +422,7 @@ func (params *extractableParams) getNoCase(key string) (string, bool) {
 	return extractParam(key, params, true, false)
 }
 
-func extractParam(
-	key string,
-	params *extractableParams,
-	ignoreCase bool,
-	delValue bool,
-) (string, bool) {
+func extractParam(key string, params *extractableParams, ignoreCase bool, delValue bool) (string, bool) {
 	if ignoreCase {
 		key = strings.ToLower(key)
 	}
